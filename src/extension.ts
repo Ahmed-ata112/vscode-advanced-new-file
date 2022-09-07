@@ -287,14 +287,16 @@ export function currentEditorPathOption(
   roots: WorkspaceRoot[]): DirectoryOption {
 
   const currentFilePath = currentEditorPath();
+  //A: its not indefind or not opened in any root in the workspace
   const currentFileRoot = currentFilePath &&
     roots.find(r => currentFilePath.indexOf(r.rootPath) === 0);
-
+    
   if (!currentFileRoot) return;
-
   const rootMatcher = new RegExp(`^${currentFileRoot.rootPath}`);
-  let relativeCurrentFilePath = currentFilePath.replace(rootMatcher, '');
 
+  //A: deletes the base 
+  let relativeCurrentFilePath = currentFilePath.replace(rootMatcher, '');
+ 
   relativeCurrentFilePath =
     relativeCurrentFilePath === '' ? path.sep : relativeCurrentFilePath;
 
@@ -394,13 +396,47 @@ export async function command(context: vscode.ExtensionContext) {
   }
 }
 
+
+export async function commandHere(context: vscode.ExtensionContext) {
+  const roots = workspaceRoots();
+
+  if (roots.length > 0) {
+    const cacheName = roots.map(r => r.rootPath).join(';');
+    const cache = new Cache(context, `workspace:${cacheName}`);
+
+    const dir = currentEditorPathOption(roots);
+
+    const selectedRoot = rootForDir(roots, dir);
+    cacheSelection(cache, dir, selectedRoot);
+    const newFileInput = await showInputBox(dir);
+    if (!newFileInput) return;
+
+    const newFileArray = expandBraces(newFileInput);
+    for (let newFile of newFileArray) {
+      createFileOrFolder(newFile);
+      await openFile(newFile);
+    }
+  } else {
+    await vscode.window.showErrorMessage(
+      'It doesn\'t look like you have a folder opened in your workspace. ' +
+      'Try opening a folder first.'
+    );
+  }
+}
+
+
 export function activate(context: vscode.ExtensionContext) {
-  let disposable = vscode.commands.registerCommand(
+
+  context.subscriptions.push(vscode.commands.registerCommand(
     'extension.advancedNewFile',
     () => command(context)
-  );
+  ));
 
-  context.subscriptions.push(disposable);
+  context.subscriptions.push(vscode.commands.registerCommand(
+    'extension.advancedNewFileHere',
+    () => commandHere(context)
+  ));
+
 }
 
 export function deactivate() { }

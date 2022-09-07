@@ -16,7 +16,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:extension.advancedNewFile"
+    "onCommand:extension.advancedNewFile",
+    "onCommand:extension.advancedNewFileHere"
   ],
   "main": "./out/src/extension",
   "contributes": {
@@ -24,6 +25,10 @@
       {
         "command": "extension.advancedNewFile",
         "title": "Advanced New File"
+      },
+      {
+        "command": "extension.advancedNewFileHere",
+        "title": "Advanced New File Here"
       }
     ],
     "keybindings": [
@@ -31,6 +36,11 @@
         "command": "extension.advancedNewFile",
         "key": "alt+ctrl+n",
         "mac": "alt+cmd+n"
+      },
+      {
+        "command": "extension.advancedNewFileHere",
+        "key": "alt+ctrl+t",
+        "mac": "alt+cmd+t"
       }
     ],
     "configuration": {
