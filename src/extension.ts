@@ -8,6 +8,7 @@ import * as gitignoreToGlob from 'gitignore-to-glob';
 import * as Cache from 'vscode-cache';
 import { QuickPickItem, ViewColumn } from 'vscode';
 import * as braces from 'braces';
+
 const fg = require('fast-glob');
 
 export interface FSLocation {
@@ -79,7 +80,7 @@ function directoriesSync(root: string): FSLocation[] {
   const ignore =
     gitignoreGlobs(root).concat(configIgnoredGlobs(root)).map(invertGlob);
 
-  const results = fg.sync('**', { cwd: root, ignore, onlyDirectories:true  })
+  const results = fg.sync('**', { cwd: root, ignore, onlyDirectories: true  })
     .map((f): FSLocation => {
       return {
         relative: path.join(path.sep, f),
@@ -193,8 +194,8 @@ export function expandBraces(absolutePath: string): string[] {
   if (!shouldExpandBraces) {
     return [absolutePath];
   }
-
-  return braces.expand(absolutePath, { expand: true , keepEscaping:true});
+  absolutePath = absolutePath.replace(/\\/g, '\\\\');
+  return braces.expand(absolutePath, { expand: true , keepEscaping: true});
 }
 
 export function createFileOrFolder(absolutePath: string): void {
@@ -288,13 +289,13 @@ export function currentEditorPathOption(
   //A: its not indefind or not opened in any root in the workspace
   const currentFileRoot = currentFilePath &&
     roots.find(r => currentFilePath.indexOf(r.rootPath) === 0);
-    
+
   if (!currentFileRoot) return;
   const rootMatcher = new RegExp(`^${currentFileRoot.rootPath}`);
 
-  //A: deletes the base 
+  //A: deletes the base
   let relativeCurrentFilePath = currentFilePath.replace(rootMatcher, '');
- 
+
   relativeCurrentFilePath =
     relativeCurrentFilePath === '' ? path.sep : relativeCurrentFilePath;
 
@@ -394,7 +395,6 @@ export async function command(context: vscode.ExtensionContext) {
   }
 }
 
-
 export async function commandHere(context: vscode.ExtensionContext) {
   const roots = workspaceRoots();
 
@@ -403,7 +403,7 @@ export async function commandHere(context: vscode.ExtensionContext) {
     const cache = new Cache(context, `workspace:${cacheName}`);
 
     const dir = currentEditorPathOption(roots);
-
+    if(!dir) return;
     const selectedRoot = rootForDir(roots, dir);
     cacheSelection(cache, dir, selectedRoot);
     const newFileInput = await showInputBox(dir);
@@ -421,7 +421,6 @@ export async function commandHere(context: vscode.ExtensionContext) {
     );
   }
 }
-
 
 export function activate(context: vscode.ExtensionContext) {
 
