@@ -196,7 +196,7 @@ export function expandBraces(absolutePath: string): string[] {
     return [absolutePath];
   }
 
-  return braces.expand(absolutePath);
+  return braces.expand(absolutePath, { expand: true , keepEscaping:true});
 }
 
 export function createFileOrFolder(absolutePath: string): void {
